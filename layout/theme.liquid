@@ -403,24 +403,5 @@
     {%- endif -%}
 
     {% section 'custom-cart-drawer' %}
-
-    {{ 'delivery-picker.css' | asset_url | stylesheet_tag }}
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
-    <script src="{{ 'delivery-picker.js' | asset_url }}" defer></script>
-    
-    {% render 'delivery-config' %}
-
-    <!-- Shopify Customer Privacy Banner Helper -->
-    <script>
-      window.Shopify = window.Shopify || {};
-      // Force check or trigger banner rendering if consent is required
-      document.addEventListener('DOMContentLoaded', function() {
-        if (window.Shopify && window.Shopify.customerPrivacy) {
-          console.log('Customer Privacy API is active:', window.Shopify.customerPrivacy.currentVisitorConsent());
-        }
-      });
-    </script>
   </body>
 </html>

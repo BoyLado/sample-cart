@@ -1466,21 +1466,5 @@
         "label": "t:settings_schema.customer_accounts.settings.customer_account_menu.label"
       }
     ]
-  },
-  {
-    "name": "Delivery Picker",
-    "settings": [
-      { "type": "checkbox", "id": "dp_enabled", "label": "Enable delivery date & time picker", "default": true },
-      { "type": "text", "id": "dp_slot_product_handle", "label": "Delivery slot product handle", "default": "delivery-slot", "info": "Dapat published at may inventory tracking." },
-      { "type": "checkbox", "id": "dp_required", "label": "Require delivery selection before checkout", "default": true },
-
-      { "type": "header", "content": "Scheduling rules" },
-      { "type": "range", "id": "dp_lead_days", "label": "Minimum days ahead", "min": 0, "max": 7, "step": 1, "default": 1 },
-      { "type": "range", "id": "dp_max_days", "label": "Bookable window (days ahead)", "min": 7, "max": 90, "step": 1, "default": 30 },
-      { "type": "text", "id": "dp_cutoff", "label": "Same-day cut-off (24h HH:MM)", "default": "13:00" },
-      { "type": "text", "id": "dp_blackout_weekdays", "label": "Closed weekdays (0=Sun ... 6=Sat)", "default": "0" },
-      { "type": "textarea", "id": "dp_holidays", "label": "Blackout dates (YYYY-MM-DD, isa kada linya)", "default": "2026-12-25\n2026-12-31\n2027-01-01" },
-      { "type": "range", "id": "dp_low_stock_at", "label": "Show 'X left' kapag ≤", "min": 1, "max": 20, "step": 1, "default": 3 }
-    ]
   }
 ]
