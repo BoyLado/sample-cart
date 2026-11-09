@@ -1,0 +1,30 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-return",
+      "settings": {
+        "eyebrow": "Order support",
+        "heading": "Request a return",
+        "intro": "<p>Enter the order number and email used at checkout to find fulfilled items that are eligible for return.</p>",
+        "panel_heading": "Find returnable items",
+        "button_label": "Find returnable items",
+        "note": "For security, the email address must match the one used when the order was placed.",
+        "proxy_base": "/apps/portal-1",
+        "endpoint_path": "/return/status",
+        "color_scheme": "scheme-1",
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    }
+  },
+  "order": ["main"]
+}

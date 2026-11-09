@@ -1,0 +1,22 @@
+{%- if settings.dp_enabled and all_products[settings.dp_slot_product_handle] -%}
+  <div class="dp" id="DeliveryPicker" data-dp>
+    <header class="dp__head">
+      <h3 class="dp__title">Delivery date &amp; time</h3>
+      <p class="dp__hint">Piliin kung kailan dapat maihatid ang bulaklak.</p>
+    </header>
+
+    <div class="dp__field">
+      <label class="dp__label" for="dp-date">Delivery date</label>
+      <input id="dp-date" class="dp__input" type="text" placeholder="Select a date" readonly autocomplete="off">
+    </div>
+
+    <div class="dp__field">
+      <span class="dp__label">Time window</span>
+      <div class="dp__slots" id="dp-slots" role="radiogroup" aria-label="Delivery time window">
+        {% render 'delivery-slots-inner' %}
+      </div>
+    </div>
+
+    <p class="dp__msg" id="dp-msg" role="status" aria-live="polite"></p>
+  </div>
+{%- endif -%}

@@ -1,0 +1,866 @@
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  #OrderStatusSection-{{ section.id }} .order-status__header {
+    text-align: center;
+    max-width: 70rem;
+    margin: 0 auto 3rem;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin: 0 0 1rem;
+    opacity: 0.75;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__title {
+    margin: 0 0 1.2rem;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__intro {
+    opacity: 0.85;
+    margin: 0;
+  }
+
+  #OrderStatusSection-{{ section.id }} .order-status__panel {
+    max-width: 70rem;
+    margin: 0 auto;
+    padding: 3rem;
+    border: 0.1rem solid rgba(var(--color-foreground), 0.12);
+    border-radius: var(--border-radius, 8px);
+    background: rgb(var(--color-background));
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__panel[hidden] { display: none; }
+  @media screen and (max-width: 749px) {
+    #OrderStatusSection-{{ section.id }} .order-status__panel { padding: 2rem 1.5rem; }
+  }
+
+  #OrderStatusSection-{{ section.id }} .order-status__panel-heading {
+    margin: 0 0 2rem;
+    font-size: calc(var(--font-heading-scale) * 1.8rem);
+  }
+
+  #OrderStatusSection-{{ section.id }} .order-status__form { margin: 0; }
+  #OrderStatusSection-{{ section.id }} .order-status__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.8rem;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__field label {
+    font-size: 1.4rem;
+    font-weight: 500;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__field input {
+    width: 100%;
+    padding: 1.2rem 1.4rem;
+    font-family: inherit;
+    font-size: 1.5rem;
+    color: rgb(var(--color-foreground));
+    background: rgb(var(--color-background));
+    border: 0.1rem solid rgba(var(--color-foreground), 0.25);
+    border-radius: var(--border-radius, 8px);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__field input:focus {
+    outline: none;
+    border-color: rgba(var(--color-foreground), 0.6);
+    box-shadow: 0 0 0 0.2rem rgba(var(--color-foreground), 0.15);
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__field input.is-error {
+    border-color: #c62828;
+    box-shadow: 0 0 0 0.2rem rgba(198, 40, 40, 0.15);
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__error {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #c62828;
+  }
+
+  #OrderStatusSection-{{ section.id }} .order-status__button {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  @media screen and (min-width: 750px) {
+    #OrderStatusSection-{{ section.id }} .order-status__button { width: auto; min-width: 22rem; }
+  }
+
+  #OrderStatusSection-{{ section.id }} .order-status__note {
+    margin: 2rem 0 0;
+    font-size: 1.3rem;
+    opacity: 0.8;
+    text-align: center;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__note a {
+    color: currentColor;
+    text-decoration: underline;
+    text-underline-offset: 0.3rem;
+  }
+
+  /* Order header */
+  #OrderStatusSection-{{ section.id }} .order-status__order-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.6rem;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__order-header h2 {
+    margin: 0;
+    font-size: calc(var(--font-heading-scale) * 1.8rem);
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__badge {
+    display: inline-block;
+    padding: 0.3rem 1rem;
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-transform: capitalize;
+    border-radius: 99rem;
+    background: rgba(var(--color-foreground), 0.08);
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__badge[data-status="fulfilled"],
+  #OrderStatusSection-{{ section.id }} .order-status__badge[data-status="delivered"] {
+    background: rgba(46, 125, 50, 0.15);
+    color: #2e7d32;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__badge[data-status="unfulfilled"],
+  #OrderStatusSection-{{ section.id }} .order-status__badge[data-status="pending"] {
+    background: rgba(237, 108, 2, 0.15);
+    color: #ed6c02;
+  }
+
+  #OrderStatusSection-{{ section.id }} .order-status__order-meta {
+    margin: 0 0 2rem;
+    font-size: 1.3rem;
+    opacity: 0.75;
+  }
+
+  /* Sections */
+  #OrderStatusSection-{{ section.id }} .order-status__section {
+    margin-top: 2.4rem;
+    padding-top: 2rem;
+    border-top: 0.1rem solid rgba(var(--color-foreground), 0.12);
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__section:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  #OrderStatusSection-{{ section.id }} .order-status__section-label {
+    margin: 0 0 1.2rem;
+    font-size: 1.3rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+  }
+
+  /* Items */
+  #OrderStatusSection-{{ section.id }} .order-status__items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__item {
+    display: grid;
+    grid-template-columns: 6.4rem 1fr auto;
+    gap: 1.4rem;
+    align-items: center;
+    padding: 1rem;
+    border: 0.1rem solid rgba(var(--color-foreground), 0.15);
+    border-radius: var(--border-radius, 8px);
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__item-image {
+    display: block;
+    width: 6.4rem;
+    height: 6.4rem;
+    border-radius: calc(var(--border-radius, 8px) / 2);
+    overflow: hidden;
+    background: rgba(var(--color-foreground), 0.06);
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__item-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__item-qty {
+    font-size: 1.3rem;
+    opacity: 0.7;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__item-price {
+    font-size: 1.4rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Shipping address */
+  #OrderStatusSection-{{ section.id }} .order-status__address {
+    font-size: 1.4rem;
+    line-height: 1.6;
+    opacity: 0.9;
+  }
+
+  /* Timeline */
+  #OrderStatusSection-{{ section.id }} .order-status__timeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-item {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 1.4rem;
+    align-items: flex-start;
+    position: relative;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 0.95rem;
+    top: 2rem;
+    bottom: -1.6rem;
+    width: 0.1rem;
+    background: rgba(var(--color-foreground), 0.2);
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-dot {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: rgb(var(--color-background));
+    border: 0.2rem solid rgba(var(--color-foreground), 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-dot.is-complete {
+    background: rgb(var(--color-foreground));
+    border-color: rgb(var(--color-foreground));
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-dot.is-complete::after {
+    content: '';
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: rgb(var(--color-background));
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-dot.is-current {
+    border-color: rgb(var(--color-foreground));
+    border-width: 0.3rem;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding-top: 0.1rem;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-label {
+    font-size: 1.4rem;
+    font-weight: 500;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-item.is-current .order-status__timeline-label {
+    font-weight: 600;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-date {
+    font-size: 1.2rem;
+    opacity: 0.65;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__timeline-note {
+    font-size: 1.2rem;
+    opacity: 0.75;
+    margin-top: 0.2rem;
+  }
+
+  /* Action buttons */
+  #OrderStatusSection-{{ section.id }} .order-status__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.4rem;
+    margin-top: 2.4rem;
+    padding-top: 2rem;
+    border-top: 0.1rem solid rgba(var(--color-foreground), 0.12);
+  }
+
+  #OrderStatusSection-{{ section.id }} .order-status__link {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 1.4rem;
+    color: currentColor;
+    text-decoration: underline;
+    text-underline-offset: 0.3rem;
+    cursor: pointer;
+    opacity: 0.85;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__link:hover { opacity: 1; }
+
+  #OrderStatusSection-{{ section.id }} .order-status__secondary-link {
+    display: block;
+    text-align: center;
+    margin-top: 2.5rem;
+    font-size: 1.3rem;
+    color: currentColor;
+    text-decoration: underline;
+    text-underline-offset: 0.3rem;
+    opacity: 0.8;
+  }
+  #OrderStatusSection-{{ section.id }} .order-status__secondary-link:hover { opacity: 1; }
+
+  #OrderStatusSection-{{ section.id }} button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+{%- endstyle -%}
+
+<section
+  id="OrderStatusSection-{{ section.id }}"
+  class="order-status color-{{ section.settings.color_scheme }} gradient"
+  aria-labelledby="OrderStatusTitle-{{ section.id }}"
+  data-order-status
+  data-proxy-base="{{ section.settings.proxy_base | default: '/apps/portal' }}"
+  data-endpoint-path="{{ section.settings.endpoint_path | default: '/order/status' }}"
+  data-currency="{{ cart.currency.symbol | default: '$' }}"
+>
+  <div class="page-width section-{{ section.id }}-padding">
+    <header class="order-status__header">
+      {% if section.settings.eyebrow != blank %}
+        <p class="order-status__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {% endif %}
+      <h1 id="OrderStatusTitle-{{ section.id }}" class="order-status__title">
+        {{ section.settings.heading | escape }}
+      </h1>
+      {% if section.settings.intro != blank %}
+        <div class="order-status__intro rte">{{ section.settings.intro }}</div>
+      {% endif %}
+    </header>
+
+    <!-- ===== VIEW: lookup form ===== -->
+    <div class="order-status__panel" data-view="lookup">
+      <h2 class="order-status__panel-heading">{{ section.settings.panel_heading | escape }}</h2>
+
+      <form class="order-status__form" data-lookup-form novalidate>
+        <input type="hidden" name="intent" value="track">
+
+        <div class="order-status__field">
+          <label for="OrderStatusNumber-{{ section.id }}">Order number</label>
+          <input
+            id="OrderStatusNumber-{{ section.id }}"
+            type="text"
+            name="order_number"
+            placeholder="#1001"
+            autocomplete="off"
+            required
+          >
+          <p class="order-status__error" data-error-for="order_number" hidden></p>
+        </div>
+
+        <div class="order-status__field">
+          <label for="OrderStatusEmail-{{ section.id }}">Checkout email</label>
+          <input
+            id="OrderStatusEmail-{{ section.id }}"
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            autocorrect="off"
+            autocapitalize="off"
+            required
+          >
+          <p class="order-status__error" data-error-for="email" hidden></p>
+        </div>
+
+        <button class="button order-status__button" type="submit" data-submit>
+          {{ section.settings.button_label | escape }}
+        </button>
+      </form>
+
+      {% if section.settings.note != blank %}
+        <p class="order-status__note">
+          {{ section.settings.note | escape }}
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- ===== VIEW: order details ===== -->
+    <div class="order-status__panel" data-view="details" hidden>
+      <div class="order-status__order-header">
+        <h2>Order <span data-order-number></span></h2>
+        <span class="order-status__badge" data-order-status></span>
+      </div>
+      <p class="order-status__order-meta" data-order-meta></p>
+
+      <!-- Items -->
+      <div class="order-status__section">
+        <p class="order-status__section-label">Items</p>
+        <div class="order-status__items" data-items></div>
+      </div>
+
+      <!-- Shipping Address -->
+      <div class="order-status__section" data-shipping-section hidden>
+        <p class="order-status__section-label">Shipping Address</p>
+        <div class="order-status__address" data-shipping-address></div>
+      </div>
+
+      <!-- Delivery Timeline -->
+      <div class="order-status__section" data-timeline-section hidden>
+        <p class="order-status__section-label">Delivery Timeline</p>
+        <div class="order-status__timeline" data-timeline></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="order-status__actions">
+        <a
+          class="button"
+          href="{{ section.settings.return_page_url | default: '/pages/returns' }}"
+          data-return-link
+        >
+          Return items from this order
+        </a>
+        <button class="order-status__link" type="button" data-back>
+          Track another order
+        </button>
+      </div>
+    </div>
+
+    <a class="order-status__secondary-link" href="{{ section.settings.return_page_url | default: '/pages/returns' }}">
+      Looking to request a return?
+    </a>
+  </div>
+</section>
+
+<script>
+(function () {
+  var root = document.querySelector('[data-order-status]');
+  if (!root) return;
+
+  var PROXY_BASE = (root.dataset.proxyBase || '/apps/portal').replace(/\/+$/, '');
+  var ENDPOINT_PATH = (root.dataset.endpointPath || '/order/status').replace(/^\/+/, '');
+  var ENDPOINT = PROXY_BASE + '/' + ENDPOINT_PATH;
+  var CURRENCY = root.dataset.currency || '$';
+
+  var views = {
+    lookup:  root.querySelector('[data-view="lookup"]'),
+    details: root.querySelector('[data-view="details"]')
+  };
+  var lookupForm        = root.querySelector('[data-lookup-form]');
+  var itemsContainer    = root.querySelector('[data-items]');
+  var timelineContainer = root.querySelector('[data-timeline]');
+  var timelineSection   = root.querySelector('[data-timeline-section]');
+  var shippingSection   = root.querySelector('[data-shipping-section]');
+  var shippingAddressEl = root.querySelector('[data-shipping-address]');
+  var returnLink        = root.querySelector('[data-return-link]');
+  var backBtn           = root.querySelector('[data-back]');
+
+  var currentOrder = null;
+
+  function showView(name) {
+    Object.keys(views).forEach(function (k) {
+      views[k].hidden = (k !== name);
+    });
+  }
+
+  /* ---------------------------------------------------------
+     LOOKUP — order number + email
+     --------------------------------------------------------- */
+  lookupForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    clearErrors();
+
+    var orderNumber = lookupForm.order_number.value.trim();
+    var email       = lookupForm.email.value.trim();
+    var valid = true;
+
+    if (!orderNumber) { showError('order_number', 'Please enter your order number.'); valid = false; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError('email', 'Please enter a valid email address.'); valid = false;
+    }
+    if (!valid) return;
+
+    setLoading(lookupForm, true);
+
+    fetch(ENDPOINT, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        intent: 'track',
+        orderNumber: orderNumber,
+        email: email
+      })
+    })
+    .then(function (r) {
+      return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+    })
+    .then(function (res) {
+      if (!res.ok || !res.data || res.data.ok !== true) {
+        var msg = (res.data && res.data.error) || 'We could not find that order. Please check your details.';
+        showError('order_number', msg);
+        return;
+      }
+      currentOrder = res.data.order;
+      renderOrder(currentOrder);
+    })
+    .catch(function (err) {
+      console.error(err);
+      showError('order_number', 'Something went wrong. Please try again.');
+    })
+    .finally(function () {
+      setLoading(lookupForm, false);
+    });
+  });
+
+  /* ---------------------------------------------------------
+     RENDER — order details
+     --------------------------------------------------------- */
+  function renderOrder(order) {
+    var numberEl = root.querySelector('[data-order-number]');
+    var statusEl = root.querySelector('[data-order-status]');
+    var metaEl   = root.querySelector('[data-order-meta]');
+
+    numberEl.textContent = order.number || '';
+    statusEl.textContent = order.fulfillmentStatus || '';
+    statusEl.dataset.status = String(order.fulfillmentStatus || '').toLowerCase();
+
+    var metaParts = [];
+    if (order.createdAt) {
+      try {
+        metaParts.push(new Date(order.createdAt).toLocaleDateString());
+      } catch (e) {
+        metaParts.push(order.createdAt);
+      }
+    }
+    if (order.financialStatus) metaParts.push(order.financialStatus);
+    metaEl.textContent = metaParts.join(' \u00B7 ');
+
+    // Items
+    itemsContainer.innerHTML = '';
+    (order.items || []).forEach(function (item) {
+      itemsContainer.appendChild(buildItemRow(item));
+    });
+
+    // Shipping address
+    if (order.shippingAddress) {
+      shippingSection.hidden = false;
+      shippingAddressEl.innerHTML = formatAddress(order.shippingAddress);
+    } else {
+      shippingSection.hidden = true;
+    }
+
+    // Timeline
+    renderTimeline(order);
+
+    // Return link — pass order number + email for prefill
+    var returnUrl = returnLink.getAttribute('href');
+    var params = '?order_number=' + encodeURIComponent(order.number || '') +
+                 '&email=' + encodeURIComponent(order.email || '');
+    returnLink.setAttribute('href', returnUrl + params);
+
+    showView('details');
+    views.details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function buildItemRow(item) {
+    var row = document.createElement('div');
+    row.className = 'order-status__item';
+
+    var imgUrl = item.image && item.image.url ? item.image.url : '';
+    var imgAlt = item.image && item.image.alt ? item.image.alt : (item.title || '');
+    var imgHtml = imgUrl
+      ? '<img src="' + escapeAttr(imgUrl) + '" alt="' + escapeAttr(imgAlt) + '" loading="lazy">'
+      : '';
+
+    var priceAmount = item.unitPrice && item.unitPrice.amount
+      ? Number(item.unitPrice.amount)
+      : 0;
+
+    row.innerHTML =
+      '<span class="order-status__item-image">' + imgHtml + '</span>' +
+      '<span class="order-status__item-info">' +
+        '<span class="order-status__item-title">' + escapeHtml(item.title || '') + '</span>' +
+        '<span class="order-status__item-qty">Qty ' + (item.quantity || 1) + '</span>' +
+      '</span>' +
+      '<span class="order-status__item-price">' + formatPrice(priceAmount) + '</span>';
+
+    return row;
+  }
+
+  function formatAddress(addr) {
+    var parts = [];
+    var name = [addr.firstName, addr.lastName].filter(Boolean).join(' ');
+    if (name) parts.push(escapeHtml(name));
+    if (addr.address1) parts.push(escapeHtml(addr.address1));
+    if (addr.address2) parts.push(escapeHtml(addr.address2));
+    var cityLine = [addr.city, addr.province, addr.zip].filter(Boolean).join(', ');
+    if (cityLine) parts.push(escapeHtml(cityLine));
+    if (addr.country) parts.push(escapeHtml(addr.country));
+    if (addr.phone) parts.push(escapeHtml(addr.phone));
+    return parts.join('<br>');
+  }
+
+  /* ---------------------------------------------------------
+     TIMELINE
+     --------------------------------------------------------- */
+  function renderTimeline(order) {
+    timelineContainer.innerHTML = '';
+
+    var steps = buildTimelineSteps(order);
+
+    if (!steps.length) {
+      timelineSection.hidden = true;
+      return;
+    }
+    timelineSection.hidden = false;
+
+    steps.forEach(function (step) {
+      var item = document.createElement('div');
+      item.className = 'order-status__timeline-item' + (step.isCurrent ? ' is-current' : '');
+
+      var dotClass = 'order-status__timeline-dot';
+      if (step.isComplete) dotClass += ' is-complete';
+      if (step.isCurrent && !step.isComplete) dotClass += ' is-current';
+
+      item.innerHTML =
+        '<span class="' + dotClass + '"></span>' +
+        '<span class="order-status__timeline-content">' +
+          '<span class="order-status__timeline-label">' + escapeHtml(step.label) + '</span>' +
+          (step.date ? '<span class="order-status__timeline-date">' + escapeHtml(step.date) + '</span>' : '') +
+          (step.note ? '<span class="order-status__timeline-note">' + escapeHtml(step.note) + '</span>' : '') +
+        '</span>';
+
+      timelineContainer.appendChild(item);
+    });
+  }
+
+  function buildTimelineSteps(order) {
+    var steps = [];
+    var createdDate = order.createdAt ? formatDate(order.createdAt) : null;
+
+    // 1. Order placed
+    steps.push({
+      label: 'Order placed',
+      date: createdDate,
+      isComplete: true,
+      isCurrent: false
+    });
+
+    // 2. Confirmed (paid)
+    var isPaid = String(order.financialStatus || '').toUpperCase() === 'PAID';
+    steps.push({
+      label: 'Confirmed',
+      date: isPaid ? createdDate : null,
+      note: isPaid ? 'Payment confirmed' : 'Awaiting payment',
+      isComplete: isPaid,
+      isCurrent: false
+    });
+
+    // 3. Fulfillments timeline (from order.fulfillments)
+    var fulfillments = order.fulfillments || [];
+    fulfillments.forEach(function (f, idx) {
+      var status = String(f.status || '').toLowerCase();
+      var date = f.deliveredAt || f.updatedAt || f.createdAt;
+      var label = 'In Transit';
+      var note = null;
+
+      if (f.trackingInfo && f.trackingInfo.company) {
+        note = 'Carrier: ' + f.trackingInfo.company;
+        if (f.trackingInfo.number) {
+          note += ' \u00B7 ' + f.trackingInfo.number;
+        }
+      }
+
+      if (status === 'delivered' || f.deliveredAt) {
+        label = 'Delivered';
+      } else if (status === 'success' || status === 'in_transit') {
+        label = 'In Transit';
+      } else if (status === 'open') {
+        label = 'Label Created';
+      }
+
+      steps.push({
+        label: label,
+        date: date ? formatDate(date) : null,
+        note: note,
+        isComplete: status === 'delivered' || status === 'success',
+        isCurrent: idx === fulfillments.length - 1 && status !== 'delivered'
+      });
+    });
+
+    // 4. If no fulfillments yet, add a pending step
+    if (fulfillments.length === 0) {
+      var isFulfilled = String(order.fulfillmentStatus || '').toUpperCase() === 'FULFILLED';
+      steps.push({
+        label: isFulfilled ? 'Fulfilled' : 'Preparing shipment',
+        date: null,
+        note: isFulfilled ? null : 'Your order is being prepared',
+        isComplete: isFulfilled,
+        isCurrent: true
+      });
+    }
+
+    return steps;
+  }
+
+  /* ---------------------------------------------------------
+     BACK
+     --------------------------------------------------------- */
+  backBtn.addEventListener('click', function () {
+    showView('lookup');
+    views.lookup.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  /* ---------------------------------------------------------
+     Helpers
+     --------------------------------------------------------- */
+  function setLoading(form, loading) {
+    var btn = form.querySelector('button[type="submit"]');
+    if (!btn) return;
+    if (!btn.dataset.label) btn.dataset.label = btn.textContent;
+    btn.disabled = loading;
+    btn.textContent = loading ? 'Searching\u2026' : btn.dataset.label;
+  }
+
+  function showError(field, msg) {
+    var errEl = root.querySelector('[data-error-for="' + field + '"]');
+    if (errEl) { errEl.textContent = msg; errEl.hidden = false; }
+    var input = root.querySelector('[name="' + field + '"]');
+    if (input) input.classList.add('is-error');
+  }
+
+  function clearErrors() {
+    root.querySelectorAll('.order-status__error').forEach(function (el) {
+      el.textContent = ''; el.hidden = true;
+    });
+    root.querySelectorAll('.is-error').forEach(function (el) {
+      el.classList.remove('is-error');
+    });
+  }
+
+  function formatPrice(v) {
+    var n = Number(v) || 0;
+    return CURRENCY + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function formatDate(iso) {
+    try {
+      return new Date(iso).toLocaleDateString(undefined, {
+        year: 'numeric', month: 'short', day: 'numeric'
+      });
+    } catch (e) {
+      return iso;
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function escapeAttr(s) { return escapeHtml(s); }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Order status page",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Order support" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Track your order" },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Introduction",
+      "default": "<p>Enter the order number and email used at checkout to see the latest delivery status.</p>"
+    },
+    { "type": "text", "id": "panel_heading", "label": "Panel heading", "default": "Find your order" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Track my order" },
+    {
+      "type": "text",
+      "id": "note",
+      "label": "Review note",
+      "default": "For security, the email address must match the one used when the order was placed."
+    },
+    {
+      "type": "url",
+      "id": "return_page_url",
+      "label": "Return page URL",
+      "info": "The page where customers can request a return."
+    },
+    {
+      "type": "header",
+      "content": "API"
+    },
+    {
+      "type": "text",
+      "id": "proxy_base",
+      "label": "App proxy base path",
+      "default": "/apps/portal",
+      "info": "Shared base path for all API calls. Must match your Shopify App Proxy (prefix + subpath)."
+    },
+    {
+      "type": "text",
+      "id": "endpoint_path",
+      "label": "Endpoint path",
+      "default": "/order/status",
+      "info": "API route appended to the proxy base."
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0, "max": 100, "step": 4, "unit": "px", "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0, "max": 100, "step": 4, "unit": "px", "default": 36
+    }
+  ],
+  "presets": [
+    { "name": "Order status page" }
+  ]
+}
+{% endschema %}

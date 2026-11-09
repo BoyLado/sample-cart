@@ -1,0 +1,29 @@
+{%- assign dp_sp = all_products[settings.dp_slot_product_handle] -%}
+{%- assign dp_low = settings.dp_low_stock_at | default: 3 -%}
+{%- for v in dp_sp.variants -%}
+  {%- assign qty = v.inventory_quantity | default: 0 -%}
+  {%- assign tracked = false -%}
+  {%- if v.inventory_management == 'shopify' -%}{%- assign tracked = true -%}{%- endif -%}
+  {%- assign soldout = false -%}
+  {%- unless v.available -%}{%- assign soldout = true -%}{%- endunless -%}
+
+  <button type="button"
+    class="dp__slot{% if soldout %} is-soldout{% endif %}"
+    data-variant-id="{{ v.id }}"
+    data-title="{{ v.title | escape }}"
+    data-qty="{{ qty }}"
+    role="radio"
+    aria-checked="false"
+    {% if soldout %}disabled aria-disabled="true"{% endif %}>
+    <span class="dp__slot-time">{{ v.title }}</span>
+    <span class="dp__slot-note">
+      {%- if soldout -%}
+        Fully booked
+      {%- elsif tracked and qty <= dp_low -%}
+        {{ qty }} left
+      {%- else -%}
+        Available
+      {%- endif -%}
+    </span>
+  </button>
+{%- endfor -%}

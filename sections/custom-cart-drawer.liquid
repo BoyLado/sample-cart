@@ -1,0 +1,861 @@
+<!-- ============================================================
+     LIQUID SECTION (unchanged)
+     ============================================================ -->
+{% comment %}
+  ==================================================================
+  FULLY FUNCTIONAL AJAX CART DRAWER WITH UPSELL SLIDER
+  (Mobile-first, 1.5 items peek, no discount/note)
+  -- WITH SCROLLABLE SHIPPING ACCORDION & STICKY FOOTER --
+  ==================================================================
+{% endcomment %}
+
+{{ 'custom-cart-drawer.css' | asset_url | stylesheet_tag }}
+
+{% comment %} ---------------------------------------------------------------
+  DYNAMIC VALUES
+--------------------------------------------------------------------- {% endcomment %}
+{% assign ccd_overlay_alpha = section.settings.overlay_opacity | times: 1.0 | divided_by: 100.0 %}
+{% assign ccd_overlay_rgba = section.settings.overlay_color | color_modify: 'alpha', ccd_overlay_alpha %}
+{% assign ccd_threshold = section.settings.free_shipping_threshold %}
+
+{% comment %} ---------------------------------------------------------------
+  DYNAMIC DESIGN SYSTEM
+--------------------------------------------------------------------- {% endcomment %}
+<style>
+  #ccd-root {
+    /* Colors */
+    --ccd-accent: {{ section.settings.accent_color }};
+    --ccd-accent-text: {{ section.settings.accent_text_color }};
+    --ccd-success: {{ section.settings.success_color }};
+    --ccd-sale: {{ section.settings.sale_price_color }};
+    --ccd-bg: {{ section.settings.drawer_bg_color }};
+    --ccd-text: {{ section.settings.text_color }};
+    --ccd-text-muted: {{ section.settings.muted_text_color }};
+    --ccd-border-color: {{ section.settings.border_color }};
+    
+    /* Progress Bar Colors */
+    --ccd-progress-fill-color: {{ section.settings.progress_fill_color }};
+    --ccd-progress-track-color: {{ section.settings.progress_track_color }};
+    --ccd-progress-success-color: {{ section.settings.progress_success_color }};
+    
+    /* Sizes */
+    --ccd-radius: {{ section.settings.border_radius }}px;
+    --ccd-drawer-width: {{ section.settings.drawer_width }}px;
+    --ccd-spacing: {{ section.settings.spacing }}px;
+    
+    /* Font Sizes */
+    --ccd-font-size-base: {{ section.settings.font_size_base }}px;
+    --ccd-font-size-title: {{ section.settings.font_size_title }}px;
+    --ccd-font-size-item-title: {{ section.settings.font_size_item_title }}px;
+    --ccd-font-size-item-variant: {{ section.settings.font_size_item_variant }}px;
+    --ccd-font-size-item-price: {{ section.settings.font_size_item_price }}px;
+    --ccd-font-size-item-total: {{ section.settings.font_size_item_total }}px;
+    --ccd-font-size-shipping: {{ section.settings.font_size_shipping }}px;
+    --ccd-font-size-upsell: {{ section.settings.font_size_upsell }}px;
+    --ccd-font-size-summary: {{ section.settings.font_size_summary }}px;
+    --ccd-font-size-checkout: {{ section.settings.font_size_checkout }}px;
+    --ccd-font-size-empty: {{ section.settings.font_size_empty }}px;
+    --ccd-font-size-discount: {{ section.settings.font_size_discount }}px;
+    --ccd-font-size-note: {{ section.settings.font_size_note }}px;
+    --ccd-font-size-trust: {{ section.settings.font_size_trust }}px;
+    
+    /* Overlay */
+    --ccd-overlay-color: {{ ccd_overlay_rgba }};
+    
+    /* Transitions */
+    --ccd-transition-speed: 0.3s;
+    --ccd-transition-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    
+    /* Z-index */
+    --ccd-z-overlay: 9998;
+    --ccd-z-drawer: 9999;
+    
+    /* Threshold */
+    --ccd-free-shipping-threshold: {{ ccd_threshold }};
+    
+    /* Skeleton Colors (FB-style) */
+    --ccd-skeleton-base: #e0e0e0;
+    --ccd-skeleton-shine: rgba(255,255,255,0.4);
+    
+    /* Merchant Controls */
+    --ccd-show-shipping-bar: {{ section.settings.show_shipping_bar }};
+    --ccd-show-upsell: {{ section.settings.show_upsell }};
+    --ccd-show-discount: {{ section.settings.show_discount_code }};
+    --ccd-show-note: {{ section.settings.show_cart_note }};
+    --ccd-show-trust-badges: {{ section.settings.show_trust_badges }};
+    --ccd-max-quantity: {{ section.settings.max_quantity_per_item | default: 999 }};
+    
+    /* Font Family */
+    --ccd-font-family: {{ section.settings.font_family | default: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }};
+  }
+</style>
+
+<div id="ccd-root">
+
+  <!-- OVERLAY -->
+  <div id="ccd-overlay" class="ccd-overlay"></div>
+
+  <!-- CART DRAWER -->
+  <div id="ccd-drawer" class="ccd-drawer" role="dialog" aria-modal="true" aria-label="Shopping Cart">
+    <div class="ccd-drawer__inner">
+
+      <!-- HEADER with parenthesis count -->
+      <div class="ccd-header">
+        <h2 class="ccd-title">
+          <span class="ccd-title-text">{{ section.settings.cart_title | default: "Your Cart" }}</span>
+          <span class="ccd-count-parenthesis" id="ccd-header-count">(0)</span>
+        </h2>
+        <button type="button" class="ccd-close" id="ccd-close-btn" aria-label="Close cart">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- ==========================================================
+           SHIPPING BAR (CLICKABLE) + ACCORDION - FIXED LOGIC
+           ========================================================== -->
+      {% if section.settings.show_shipping_bar %}
+        {% assign suggested_collection = section.settings.shipping_suggested_collection %}
+        {% assign suggested_limit = section.settings.shipping_suggested_limit | default: 3 %}
+        {% assign has_products = false %}
+        {% assign collection_set = false %}
+
+        {% comment %}
+          Determine which products to show:
+          - If a collection is selected, use its products.
+          - Otherwise, use ALL products (collections.all.products).
+        {% endcomment %}
+        {% if suggested_collection != blank and suggested_collection.products.size > 0 %}
+          {% assign products_to_show = suggested_collection.products %}
+          {% assign has_products = true %}
+          {% assign collection_set = true %}
+        {% else %}
+          {% assign all_products = collections.all.products %}
+          {% if all_products.size > 0 %}
+            {% assign products_to_show = all_products %}
+            {% assign has_products = true %}
+            {% assign collection_set = true %}
+          {% endif %}
+        {% endif %}
+
+        <div class="ccd-shipping-wrapper" id="ccd-shipping-wrapper">
+          <div class="ccd-shipping-bar" id="ccd-shipping-bar" data-shipping-bar hidden>
+            <div class="ccd-shipping-bar__clickable" id="ccd-shipping-trigger">
+              <!-- Text -->
+              <p class="ccd-shipping-bar__text" id="ccd-shipping-text">
+                {{ section.settings.shipping_bar_text_before | default: "Add" }}
+                <strong class="ccd-shipping-remaining" id="ccd-shipping-remaining">
+                  {{ section.settings.free_shipping_threshold | money }}
+                </strong>
+                {{ section.settings.shipping_bar_text_after | default: "more to unlock FREE SHIPPING! 🚚" }}
+              </p>
+              <!-- Success message (hidden by default) -->
+              <p class="ccd-shipping-bar__text ccd-shipping-bar__text--success" id="ccd-shipping-success" hidden>
+                {{ section.settings.shipping_unlocked_text | default: "🎉 Congratulations! You unlocked FREE SHIPPING!" }}
+              </p>
+              <!-- Progress Bar Track -->
+              <div class="ccd-shipping-bar__track">
+                <div class="ccd-shipping-bar__fill" id="ccd-shipping-fill" style="width: 0%;"></div>
+              </div>
+              <!-- Thin arrow (›) -->
+              <div class="ccd-shipping-bar__arrow-wrapper">
+                <span class="ccd-shipping-arrow" id="ccd-shipping-arrow">›</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCORDION CONTENT -->
+          <div class="ccd-shipping-accordion" id="ccd-shipping-accordion">
+            <div class="ccd-shipping-accordion__inner">
+              {% if has_products %}
+                <!-- Heading -->
+                <h4 class="ccd-shipping-accordion__heading">
+                  {{ section.settings.shipping_suggested_heading | default: "Add these to reach free shipping" }}
+                </h4>
+                <!-- Grid: Liquid rendered, JS will not touch because data-collection-set="true" -->
+                <div class="ccd-shipping-accordion-grid" 
+                     id="ccd-shipping-accordion-grid"
+                     data-collection-set="true">
+                  {% for product in products_to_show limit: suggested_limit %}
+                    {% if product.available and product.variants.first.available %}
+                      <div class="ccd-shipping-suggested-item" data-variant-id="{{ product.variants.first.id }}">
+                        <div class="ccd-shipping-suggested-item__image-wrap">
+                          <img src="{{ product.featured_image | img_url: '80x80' }}" alt="{{ product.title }}" width="80" height="80" loading="lazy">
+                        </div>
+                        <div class="ccd-shipping-suggested-item__details">
+                          <p class="ccd-shipping-suggested-item__title">{{ product.title | truncate: 30 }}</p>
+                          <span class="ccd-shipping-suggested-item__price">{{ product.price | money }}</span>
+                        </div>
+                        <button type="button" class="ccd-shipping-suggested-item__add" data-variant-id="{{ product.variants.first.id }}">
+                          + Add
+                        </button>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% else %}
+                <!-- No products available → let JS populate with random products -->
+                <div class="ccd-shipping-accordion-grid" 
+                     id="ccd-shipping-accordion-grid"
+                     data-collection-set="false">
+                  <!-- JS will populate this -->
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- BODY WRAPPER -->
+      <div class="ccd-body-wrapper">
+        <div class="ccd-body" id="ccd-cart-items">
+          
+          <!-- SKELETON LOADER (FB-style) -->
+          <div class="ccd-skeleton" id="ccd-skeleton">
+            <div class="ccd-skeleton-item">
+              <div class="ccd-skeleton-image"></div>
+              <div class="ccd-skeleton-details">
+                <div class="ccd-skeleton-line ccd-skeleton-line--title"></div>
+                <div class="ccd-skeleton-line ccd-skeleton-line--variant"></div>
+                <div class="ccd-skeleton-line ccd-skeleton-line--price"></div>
+                <div class="ccd-skeleton-footer">
+                  <div class="ccd-skeleton-qty"></div>
+                  <div class="ccd-skeleton-line ccd-skeleton-line--total"></div>
+                </div>
+              </div>
+            </div>
+            <div class="ccd-skeleton-item">
+              <div class="ccd-skeleton-image"></div>
+              <div class="ccd-skeleton-details">
+                <div class="ccd-skeleton-line ccd-skeleton-line--title"></div>
+                <div class="ccd-skeleton-line ccd-skeleton-line--variant"></div>
+                <div class="ccd-skeleton-line ccd-skeleton-line--price"></div>
+                <div class="ccd-skeleton-footer">
+                  <div class="ccd-skeleton-qty"></div>
+                  <div class="ccd-skeleton-line ccd-skeleton-line--total"></div>
+                </div>
+              </div>
+            </div>
+            <div class="ccd-skeleton-item">
+              <div class="ccd-skeleton-image"></div>
+              <div class="ccd-skeleton-details">
+                <div class="ccd-skeleton-line ccd-skeleton-line--title"></div>
+                <div class="ccd-skeleton-line ccd-skeleton-line--variant"></div>
+                <div class="ccd-skeleton-line ccd-skeleton-line--price"></div>
+                <div class="ccd-skeleton-footer">
+                  <div class="ccd-skeleton-qty"></div>
+                  <div class="ccd-skeleton-line ccd-skeleton-line--total"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACTUAL CONTENT -->
+          <div id="ccd-content" hidden></div>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div class="ccd-empty" id="ccd-empty" hidden>
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <path d="M20 24H44M20 24L16 52H48L44 24M20 24L18 12H46L44 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="24" cy="40" r="2" fill="currentColor"/>
+            <circle cx="40" cy="40" r="2" fill="currentColor"/>
+          </svg>
+          <h3>{{ section.settings.empty_cart_title | default: "Your cart is empty" }}</h3>
+          <p>{{ section.settings.empty_cart_text | default: "Looks like you haven't added anything to your cart yet." }}</p>
+          <a href="{{ routes.all_products_collection_url }}" class="ccd-empty-link">
+            {{ section.settings.empty_cart_button_text | default: "Continue Shopping" }}
+          </a>
+        </div>
+
+        <!-- UPSELL SLIDER SECTION -->
+        {% if section.settings.show_upsell %}
+          {% assign selected_collection = section.settings.upsell_collection %}
+          {% if selected_collection != blank and selected_collection.products.size > 0 %}
+            <div class="ccd-upsell-section" id="ccd-upsell" data-collection-set="true" data-collection-handle="{{ selected_collection.handle }}">
+              <div class="ccd-upsell-header">
+                <p class="ccd-upsell-heading">{{ section.settings.upsell_title | default: "✨ You May Also Like" }}</p>
+                <div class="ccd-upsell-nav">
+                  <button class="ccd-upsell-nav-btn ccd-upsell-prev" aria-label="Previous" disabled>‹</button>
+                  <span class="ccd-upsell-counter" id="ccd-upsell-counter">1/5</span>
+                  <button class="ccd-upsell-nav-btn ccd-upsell-next" aria-label="Next">›</button>
+                </div>
+              </div>
+              <div class="ccd-upsell-slider-wrapper">
+                <div class="ccd-upsell-slider" id="ccd-upsell-slider">
+                  {% for product in selected_collection.products limit: section.settings.upsell_product_limit %}
+                    {% if product.available and product.variants.first.available %}
+                      <div class="ccd-upsell-slide" data-variant-id="{{ product.variants.first.id }}">
+                        <div class="ccd-upsell-slide__image-wrap">
+                          <img class="ccd-upsell-slide__image" src="{{ product.featured_image | img_url: '200x200' }}" alt="{{ product.title }}" width="80" height="80" loading="lazy">
+                          {% if product.compare_at_price > product.price %}
+                            <span class="ccd-upsell-slide__badge">Sale</span>
+                          {% endif %}
+                        </div>
+                        <div class="ccd-upsell-slide__details">
+                          <p class="ccd-upsell-slide__title">{{ product.title | truncate: 30 }}</p>
+                          <div class="ccd-upsell-slide__pricing">
+                            <span class="ccd-upsell-slide__price">{{ product.price | money }}</span>
+                            {% if product.compare_at_price > product.price %}
+                              <span class="ccd-upsell-slide__compare">{{ product.compare_at_price | money }}</span>
+                            {% endif %}
+                          </div>
+                        </div>
+                        <button type="button" class="ccd-upsell-slide__add" data-variant-id="{{ product.variants.first.id }}">
+                          {{ section.settings.upsell_button_text | default: "+ Add" }}
+                        </button>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="ccd-upsell-dots" id="ccd-upsell-dots"></div>
+            </div>
+          {% else %}
+            <div class="ccd-upsell-section" id="ccd-upsell" data-collection-set="false">
+              <div class="ccd-upsell-header">
+                <p class="ccd-upsell-heading">{{ section.settings.upsell_title | default: "✨ You May Also Like" }}</p>
+                <div class="ccd-upsell-nav">
+                  <button class="ccd-upsell-nav-btn ccd-upsell-prev" aria-label="Previous" disabled>‹</button>
+                  <span class="ccd-upsell-counter" id="ccd-upsell-counter">1/5</span>
+                  <button class="ccd-upsell-nav-btn ccd-upsell-next" aria-label="Next">›</button>
+                </div>
+              </div>
+              <div class="ccd-upsell-slider-wrapper">
+                <div class="ccd-upsell-slider" id="ccd-upsell-slider">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+              <div class="ccd-upsell-dots" id="ccd-upsell-dots"></div>
+            </div>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- STICKY FOOTER (NO DISCOUNT / NOTE) -->
+      <div class="ccd-footer" id="ccd-footer">
+
+        <!-- SINGLE LINE: "Subtotal" (left) | Amount + Checkout (right) -->
+        <div class="ccd-checkout-row">
+          <div class="ccd-subtotal-left">
+            <span class="ccd-summary__label">{{ section.settings.subtotal_label | default: "Subtotal" }}</span>
+          </div>
+          <div class="ccd-checkout-right">
+            <span class="ccd-checkout-amount" id="ccd-checkout-amount">$0.00</span>
+            <a href="{{ routes.cart_url }}/checkout" class="ccd-checkout-btn" id="ccd-checkout-btn">
+              <span class="ccd-checkout-btn__label">
+                {{ section.settings.checkout_button_text | default: "Check Out" }} (<span id="ccd-checkout-count">0</span>)
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Savings row (hidden by default) -->
+        <div class="ccd-summary__row ccd-summary__row--savings" id="ccd-savings-row" hidden>
+          <span class="ccd-summary__label">{{ section.settings.savings_label | default: "You're saving" }}</span>
+          <span class="ccd-summary__value" id="ccd-savings">$0.00</span>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="{{ 'custom-cart-drawer.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Custom Cart Drawer",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color (buttons, links)",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "accent_text_color",
+      "label": "Accent text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "success_color",
+      "label": "Success color",
+      "default": "#2e7d32"
+    },
+    {
+      "type": "color",
+      "id": "sale_price_color",
+      "label": "Sale price color",
+      "default": "#c0392b"
+    },
+    {
+      "type": "color",
+      "id": "drawer_bg_color",
+      "label": "Drawer background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted text color",
+      "default": "#6b6b6b"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border color",
+      "default": "#e8e8e8"
+    },
+    {
+      "type": "header",
+      "content": "Progress Bar Colors"
+    },
+    {
+      "type": "color",
+      "id": "progress_fill_color",
+      "label": "Progress fill color",
+      "default": "#1a1a1a",
+      "info": "Color of the progress bar when not complete"
+    },
+    {
+      "type": "color",
+      "id": "progress_track_color",
+      "label": "Progress track color",
+      "default": "#e8e8e8",
+      "info": "Background color of the progress bar track"
+    },
+    {
+      "type": "color",
+      "id": "progress_success_color",
+      "label": "Progress success color",
+      "default": "#2e7d32",
+      "info": "Color when free shipping is unlocked"
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "Layout & Spacing"
+    },
+    {
+      "type": "select",
+      "id": "border_radius",
+      "label": "Corner radius",
+      "options": [
+        { "value": "0", "label": "Square" },
+        { "value": "4", "label": "Small" },
+        { "value": "8", "label": "Medium" },
+        { "value": "12", "label": "Large" },
+        { "value": "24", "label": "Pill" }
+      ],
+      "default": "8"
+    },
+    {
+      "type": "range",
+      "id": "drawer_width",
+      "label": "Drawer width",
+      "min": 400,
+      "max": 500,
+      "step": 10,
+      "unit": "px",
+      "default": 420
+    },
+    {
+      "type": "range",
+      "id": "spacing",
+      "label": "Spacing (padding)",
+      "min": 16,
+      "max": 32,
+      "step": 4,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Font Settings"
+    },
+    {
+      "type": "text",
+      "id": "font_family",
+      "label": "Font family",
+      "default": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "info": "Enter font family or Google Font name"
+    },
+    {
+      "type": "range",
+      "id": "font_size_base",
+      "label": "Base font size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "font_size_title",
+      "label": "Cart title font size",
+      "min": 16,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "font_size_item_title",
+      "label": "Item title font size",
+      "min": 13,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "font_size_item_variant",
+      "label": "Item variant font size",
+      "min": 11,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "font_size_item_price",
+      "label": "Item price font size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "font_size_item_total",
+      "label": "Item line total font size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "font_size_shipping",
+      "label": "Shipping bar font size",
+      "min": 11,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "font_size_upsell",
+      "label": "Upsell font size",
+      "min": 11,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "font_size_summary",
+      "label": "Summary font size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "font_size_checkout",
+      "label": "Checkout button font size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "font_size_empty",
+      "label": "Empty state font size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "font_size_discount",
+      "label": "Discount accordion font size",
+      "min": 11,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "font_size_note",
+      "label": "Order note font size",
+      "min": 11,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "font_size_trust",
+      "label": "Trust badges font size",
+      "min": 10,
+      "max": 14,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Cart Title"
+    },
+    {
+      "type": "text",
+      "id": "cart_title",
+      "label": "Cart title",
+      "default": "Your Cart"
+    },
+    {
+      "type": "header",
+      "content": "Free Shipping Bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_shipping_bar",
+      "label": "Enable free shipping bar",
+      "default": true,
+      "info": "Shows only when cart has items"
+    },
+    {
+      "type": "number",
+      "id": "free_shipping_threshold",
+      "label": "Free shipping threshold",
+      "default": 100,
+      "info": "Amount in your store's currency (e.g. 100)"
+    },
+    {
+      "type": "text",
+      "id": "shipping_bar_text_before",
+      "label": "Text before amount",
+      "default": "Add"
+    },
+    {
+      "type": "text",
+      "id": "shipping_bar_text_after",
+      "label": "Text after amount",
+      "default": "more to unlock FREE SHIPPING! 🚚"
+    },
+    {
+      "type": "text",
+      "id": "shipping_unlocked_text",
+      "label": "Unlocked message",
+      "default": "🎉 Congratulations! You unlocked FREE SHIPPING!"
+    },
+    {
+      "type": "header",
+      "content": "Shipping Bar Suggested Products"
+    },
+    {
+      "type": "collection",
+      "id": "shipping_suggested_collection",
+      "label": "Suggested products collection",
+      "info": "Choose a collection. If left empty, all products will be shown (limited by the number below)."
+    },
+    {
+      "type": "text",
+      "id": "shipping_suggested_heading",
+      "label": "Suggested products heading",
+      "default": "Add these to reach free shipping"
+    },
+    {
+      "type": "range",
+      "id": "shipping_suggested_limit",
+      "label": "Number of products to show",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "header",
+      "content": "Upsell / Cross-sell"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_upsell",
+      "label": "Enable upsell section",
+      "default": true,
+      "info": "Shows products from selected collection or random products if none selected"
+    },
+    {
+      "type": "collection",
+      "id": "upsell_collection",
+      "label": "Upsell collection (optional)",
+      "info": "Select a collection. If empty, random products from the store will appear."
+    },
+    {
+      "type": "range",
+      "id": "upsell_product_limit",
+      "label": "Number of products",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "text",
+      "id": "upsell_title",
+      "label": "Upsell title",
+      "default": "✨ You May Also Like"
+    },
+    {
+      "type": "text",
+      "id": "upsell_button_text",
+      "label": "Add button text",
+      "default": "+ Add"
+    },
+    {
+      "type": "header",
+      "content": "Footer Features"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_discount_code",
+      "label": "Enable discount code",
+      "default": false,
+      "info": "Discount code is disabled in this version"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart_note",
+      "label": "Enable order note",
+      "default": false,
+      "info": "Order note is disabled in this version"
+    },
+    {
+      "type": "header",
+      "content": "Summary & Buttons"
+    },
+    {
+      "type": "text",
+      "id": "subtotal_label",
+      "label": "Subtotal label",
+      "default": "Subtotal"
+    },
+    {
+      "type": "text",
+      "id": "savings_label",
+      "label": "Savings label",
+      "default": "You're saving"
+    },
+    {
+      "type": "text",
+      "id": "checkout_button_text",
+      "label": "Checkout button text (prefix)",
+      "default": "Check Out",
+      "info": "This text will be followed by (item count)"
+    },
+    {
+      "type": "text",
+      "id": "continue_button_text",
+      "label": "Continue button text",
+      "default": "Continue Shopping"
+    },
+    {
+      "type": "header",
+      "content": "Empty State"
+    },
+    {
+      "type": "text",
+      "id": "empty_cart_title",
+      "label": "Empty cart title",
+      "default": "Your cart is empty"
+    },
+    {
+      "type": "text",
+      "id": "empty_cart_text",
+      "label": "Empty cart text",
+      "default": "Looks like you haven't added anything to your cart yet."
+    },
+    {
+      "type": "text",
+      "id": "empty_cart_button_text",
+      "label": "Continue shopping button",
+      "default": "Continue Shopping"
+    },
+    {
+      "type": "header",
+      "content": "Trust Badges"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_trust_badges",
+      "label": "Enable trust badges",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "trust_badges_text",
+      "label": "Trust badges label",
+      "default": "We accept:"
+    },
+    {
+      "type": "text",
+      "id": "trust_badges_list",
+      "label": "Trust badges (comma separated)",
+      "default": "Visa, Mastercard, PayPal, Shop Pay",
+      "info": "Enter payment methods separated by commas"
+    }
+  ]
+}
+{% endschema %}

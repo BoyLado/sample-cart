@@ -1,0 +1,18 @@
+{%- comment -%} snippets/delivery-config.liquid {%- endcomment -%}
+{%- if settings.dp_enabled -%}
+  {%- assign dp_sp = all_products[settings.dp_slot_product_handle] -%}
+  {%- if dp_sp -%}
+    <script type="application/json" id="DeliveryPickerConfig">
+      {
+        "slotProductId": {{ dp_sp.id }},
+        "required": {{ settings.dp_required | json }},
+        "leadDays": {{ settings.dp_lead_days | default: 1 }},
+        "maxDays": {{ settings.dp_max_days | default: 30 }},
+        "cutoff": {{ settings.dp_cutoff | default: '13:00' | json }},
+        "closedWeekdaysRaw": {{ settings.dp_blackout_weekdays | default: '0' | json }},
+        "holidaysRaw": {{ settings.dp_holidays | default: '' | json }},
+        "lowStockAt": {{ settings.dp_low_stock_at | default: 3 }}
+      }
+    </script>
+  {%- endif -%}
+{%- endif -%}
