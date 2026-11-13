@@ -232,28 +232,10 @@
           "agent_border_radius": 16
         }
       },
-      "12535627480779512769": {
-        "type": "shopify://apps/eweb-wishlist-alerts/blocks/wishlist-app-embed/019deddd-6fdf-757c-891b-2b55150fb943",
+      "11349500561483629931": {
+        "type": "shopify://apps/notify-back-in-stock-preorder/blocks/app-embed/b399b727-6c85-44fc-9e21-63114bd72054",
         "disabled": false,
-        "settings": {
-          "icon_style": "heart",
-          "icon_stroke_width": 1.7,
-          "icon_color": "#4a4a4a",
-          "icon_active_color": "#d82c0d",
-          "icon_show_background": true,
-          "wishlist_display_mode": "popup",
-          "show_header_icon": true,
-          "header_display": "icon",
-          "header_icon_color": "",
-          "header_icon_size": 22,
-          "header_label": "Wishlist",
-          "show_product_grid": true,
-          "icon_position_grid": "top-right",
-          "icon_size_grid": 34,
-          "show_product_page": true,
-          "icon_position_product": "top-right",
-          "icon_size_product": 34
-        }
+        "settings": {}
       }
     },
     "color_schemes": {
